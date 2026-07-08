@@ -1,0 +1,19 @@
+{
+  "name": "expense-tracker",
+  "version": "1.0.0",
+  "description": "Personal Expense Tracker built with Node.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "expense",
+    "tracker",
+    "node.js"
+  ],
+  "author": "Dhruv Dahiya",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
