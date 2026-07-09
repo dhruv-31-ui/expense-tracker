@@ -1,20 +1,24 @@
 const express = require("express");
+const connectDB = require("./config/database");
+const expenseRoutes = require("./routes/expenseRoutes");
 
 const app = express();
 
-const PORT = 3000;
+// Connect Database
+connectDB();
 
+// Middleware
 app.use(express.json());
 
+// Routes
+app.use("/expenses", expenseRoutes);
+
+// Home Route
 app.get("/", (req, res) => {
-    res.send("Expense Tracker API");
+    res.send("Expense Tracker API is Running...");
 });
 
-app.post("/expenses", (req, res) => {
-    console.log(req.body);
-
-    res.send("Expense received");
-});
+const PORT = 3000;
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
