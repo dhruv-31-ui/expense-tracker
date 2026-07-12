@@ -1,25 +1,30 @@
 const express = require("express");
-const connectDB = require("./config/database");
+const dotenv = require("dotenv");
+const cors = require("cors");
+
+const connectDB = require("./config/db");
+
 const expenseRoutes = require("./routes/expenseRoutes");
+const authRoutes = require("./routes/authRoutes");
+
+dotenv.config();
+
+connectDB();
 
 const app = express();
 
-// Connect Database
-connectDB();
+app.use(cors());
 
-// Middleware
 app.use(express.json());
 
-// Routes
-app.use("/expenses", expenseRoutes);
+app.use("/api/auth", authRoutes);
 
-// Home Route
-app.get("/", (req, res) => {
-    res.send("Expense Tracker API is Running...");
-});
+app.use("/api/expenses", expenseRoutes);
 
-const PORT = 3000;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
+
     console.log(`Server running on port ${PORT}`);
+
 });
