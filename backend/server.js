@@ -1,30 +1,93 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const cors = require("cors");
+require("dotenv").config();
 
+const http = require("http");
+
+const app = require("./app");
 const connectDB = require("./config/db");
-
-const expenseRoutes = require("./routes/expenseRoutes");
-const authRoutes = require("./routes/authRoutes");
-
-dotenv.config();
-
-connectDB();
-
-const app = express();
-
-app.use(cors());
-
-app.use(express.json());
-
-app.use("/api/auth", authRoutes);
-
-app.use("/api/expenses", expenseRoutes);
+const logger = require("./utils/logger");
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+const startServer = async () => {
 
-    console.log(`Server running on port ${PORT}`);
+    try {
+
+        await connectDB();
+
+        const server = http.createServer(app);
+
+        server.listen(PORT, () => {
+
+            logger.info(
+                `🚀 Server running on http://localhost:${PORT}`
+            );
+
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Graceful Shutdown
+        |--------------------------------------------------------------------------
+        */
+
+        process.on("SIGINT", () => {
+
+            logger.info("SIGINT received. Shutting down server...");
+
+            server.close(() => {
+
+                logger.info("Server closed.");
+
+                process.exit(0);
+
+            });
+
+        });
+
+        process.on("SIGTERM", () => {
+
+            logger.info("SIGTERM received. Shutting down server...");
+
+            server.close(() => {
+
+                logger.info("Server closed.");
+
+                process.exit(0);
+
+            });
+
+        });
+
+    } catch (error) {
+
+        logger.error(`Startup Error: ${error.message}`);
+
+        process.exit(1);
+
+    }
+
+};
+
+/*
+|--------------------------------------------------------------------------
+| Global Process Error Handling
+|--------------------------------------------------------------------------
+*/
+
+process.on("uncaughtException", (error) => {
+
+    logger.error(`Uncaught Exception: ${error.stack}`);
+
+    process.exit(1);
 
 });
+
+process.on("unhandledRejection", (reason) => {
+
+    logger.error(`Unhandled Rejection: ${reason}`);
+
+    process.exit(1);
+
+});
+
+startServer();

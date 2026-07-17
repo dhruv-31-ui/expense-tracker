@@ -1,25 +1,25 @@
 import { useEffect, useState } from "react";
-import api from "../services/api";
+import adminService from "../services/adminService";
 
 const AdminDashboard = () => {
 
     const [users, setUsers] = useState([]);
-
     const [loading, setLoading] = useState(true);
+    const [deletingId, setDeletingId] = useState(null);
 
     useEffect(() => {
-
         fetchUsers();
-
     }, []);
 
     const fetchUsers = async () => {
 
         try {
 
-            const response = await api.get("/admin/users");
+            setLoading(true);
 
-            setUsers(response.data.data);
+            const response = await adminService.getUsers();
+
+            setUsers(response.data || []);
 
         } catch (error) {
 
@@ -35,11 +35,17 @@ const AdminDashboard = () => {
 
     const handleDelete = async (id) => {
 
-        if (!window.confirm("Delete User?")) return;
+        const confirmDelete = window.confirm(
+            "Are you sure you want to delete this user?"
+        );
+
+        if (!confirmDelete) return;
 
         try {
 
-            await api.delete(`/admin/users/${id}`);
+            setDeletingId(id);
+
+            await adminService.deleteUser(id);
 
             setUsers(prev =>
                 prev.filter(user => user._id !== id)
@@ -49,12 +55,25 @@ const AdminDashboard = () => {
 
             console.error(error);
 
+        } finally {
+
+            setDeletingId(null);
+
         }
 
     };
 
-    if (loading)
-        return <h2>Loading...</h2>;
+    if (loading) {
+
+        return (
+            <div className="flex justify-center items-center h-96">
+                <h2 className="text-2xl font-semibold">
+                    Loading Users...
+                </h2>
+            </div>
+        );
+
+    }
 
     return (
 
@@ -64,41 +83,70 @@ const AdminDashboard = () => {
                 Admin Dashboard
             </h1>
 
-            <div className="space-y-4">
+            {!users.length ? (
 
-                {users.map(user => (
+                <div className="bg-white rounded-xl shadow-lg p-10 text-center">
 
-                    <div
-                        key={user._id}
-                        className="bg-white rounded-xl shadow p-5 flex justify-between items-center"
-                    >
+                    <h2 className="text-xl font-semibold">
+                        No Users Found
+                    </h2>
 
-                        <div>
+                </div>
 
-                            <h2 className="font-semibold">
-                                {user.name}
-                            </h2>
+            ) : (
 
-                            <p>
-                                {user.email}
-                            </p>
+                <div className="space-y-4">
+
+                    {users.map(user => (
+
+                        <div
+                            key={user._id}
+                            className="bg-white rounded-xl shadow-lg p-5 flex justify-between items-center"
+                        >
+
+                            <div>
+
+                                <h2 className="font-semibold text-lg">
+                                    {user.name}
+                                </h2>
+
+                                <p className="text-gray-600">
+                                    {user.email}
+                                </p>
+
+                                <span
+                                    className={`inline-block mt-2 px-3 py-1 rounded text-white text-sm ${
+                                        user.role === "admin"
+                                            ? "bg-red-500"
+                                            : "bg-green-500"
+                                    }`}
+                                >
+                                    {user.role}
+                                </span>
+
+                            </div>
+
+                            <button
+                                onClick={() =>
+                                    handleDelete(user._id)
+                                }
+                                disabled={
+                                    deletingId === user._id
+                                }
+                                className="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white px-4 py-2 rounded transition"
+                            >
+                                {deletingId === user._id
+                                    ? "Deleting..."
+                                    : "Delete"}
+                            </button>
 
                         </div>
 
-                        <button
-                            onClick={() =>
-                                handleDelete(user._id)
-                            }
-                            className="bg-red-500 text-white px-4 py-2 rounded"
-                        >
-                            Delete
-                        </button>
+                    ))}
 
-                    </div>
+                </div>
 
-                ))}
-
-            </div>
+            )}
 
         </div>
 

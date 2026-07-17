@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 const Navbar = () => {
@@ -7,13 +7,22 @@ const Navbar = () => {
 
     const { user, logout } = useAuth();
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
 
-        logout();
+        await logout();
 
-        navigate("/login");
+        navigate("/login", {
+            replace: true,
+        });
 
     };
+
+    const navLinkClass = ({ isActive }) =>
+        `transition-colors ${
+            isActive
+                ? "text-blue-600 font-semibold"
+                : "hover:text-blue-600"
+        }`;
 
     return (
 
@@ -21,49 +30,47 @@ const Navbar = () => {
 
             <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
-                <Link
+                <NavLink
                     to="/dashboard"
                     className="text-2xl font-bold text-blue-600"
                 >
                     Expense Tracker
-                </Link>
+                </NavLink>
 
                 <div className="flex items-center gap-6">
 
-                    <Link
+                    <NavLink
                         to="/dashboard"
-                        className="hover:text-blue-600"
+                        className={navLinkClass}
                     >
                         Dashboard
-                    </Link>
+                    </NavLink>
 
-                    <Link
+                    <NavLink
                         to="/profile"
-                        className="hover:text-blue-600"
+                        className={navLinkClass}
                     >
                         Profile
-                    </Link>
+                    </NavLink>
 
                     {user?.role === "admin" && (
 
-                        <Link
+                        <NavLink
                             to="/admin"
-                            className="hover:text-blue-600"
+                            className={navLinkClass}
                         >
                             Admin
-                        </Link>
+                        </NavLink>
 
                     )}
 
-                    <span className="font-medium">
-
-                        {user?.name}
-
+                    <span className="font-medium text-gray-700">
+                        {user?.name || "User"}
                     </span>
 
                     <button
                         onClick={handleLogout}
-                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                        className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
                     >
                         Logout
                     </button>

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
     PieChart,
     Pie,
@@ -8,6 +8,8 @@ import {
     Legend,
 } from "recharts";
 
+import analyticsService from "../../services/analyticsService";
+
 const COLORS = [
     "#3B82F6",
     "#10B981",
@@ -15,56 +17,80 @@ const COLORS = [
     "#EF4444",
     "#8B5CF6",
     "#06B6D4",
+    "#14B8A6",
+    "#F97316",
+    "#EC4899",
+    "#6366F1",
 ];
 
-const CategoryChart = ({ expenses }) => {
+const CategoryChart = () => {
 
-    /* ---------- Category Totals ---------- */
+    const [chartData, setChartData] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const categoryTotals = useMemo(() => {
+    useEffect(() => {
+        fetchCategoryAnalytics();
+    }, []);
 
-        return expenses.reduce((totals, expense) => {
+    const fetchCategoryAnalytics = async () => {
+        try {
 
-            if (!totals[expense.category]) {
-                totals[expense.category] = 0;
-            }
+            setLoading(true);
 
-            totals[expense.category] += expense.amount;
+            const response =
+                await analyticsService.getCategoryAnalytics();
 
-            return totals;
+            /*
+             Backend should return:
 
-        }, {});
+             [
+                {
+                    category: "Food",
+                    total: 2500
+                }
+             ]
+            */
 
-    }, [expenses]);
+            setChartData(response.data || []);
 
-    /* ---------- Chart Data ---------- */
+        } catch (error) {
 
-    const chartData = useMemo(() => {
+            console.error(error);
 
-        return Object.entries(categoryTotals).map(
-            ([category, total]) => ({
-                category,
-                total,
-            })
+        } finally {
+
+            setLoading(false);
+
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="bg-white rounded-xl shadow-lg p-6 h-[400px] flex items-center justify-center">
+                Loading...
+            </div>
         );
+    }
 
-    }, [categoryTotals]);
+    if (!chartData.length) {
+        return (
+            <div className="bg-white rounded-xl shadow-lg p-6 h-[400px] flex items-center justify-center">
+                No Data Available
+            </div>
+        );
+    }
 
     return (
-
         <div className="bg-white rounded-xl shadow-lg p-6">
 
             <h2 className="text-xl font-bold mb-5">
-
                 Expenses by Category
-
             </h2>
 
             <ResponsiveContainer
                 width="100%"
                 height={350}
             >
-
                 <PieChart>
 
                     <Pie
@@ -76,20 +102,17 @@ const CategoryChart = ({ expenses }) => {
                         outerRadius={120}
                         label
                     >
-
                         {chartData.map((entry, index) => (
-
                             <Cell
-                                key={index}
+                                key={entry.category}
                                 fill={
                                     COLORS[
-                                        index % COLORS.length
+                                        index %
+                                            COLORS.length
                                     ]
                                 }
                             />
-
                         ))}
-
                     </Pie>
 
                     <Tooltip />
@@ -97,13 +120,10 @@ const CategoryChart = ({ expenses }) => {
                     <Legend />
 
                 </PieChart>
-
             </ResponsiveContainer>
 
         </div>
-
     );
-
 };
 
 export default CategoryChart;

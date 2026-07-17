@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
     ResponsiveContainer,
     BarChart,
@@ -9,57 +9,75 @@ import {
     CartesianGrid,
 } from "recharts";
 
-const MonthlyChart = ({ expenses }) => {
+import analyticsService from "../../services/analyticsService";
 
-    /* ---------- Monthly Totals ---------- */
+const MonthlyChart = () => {
 
-    const monthlyTotals = useMemo(() => {
+    const [chartData, setChartData] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-        return expenses.reduce((totals, expense) => {
+    useEffect(() => {
+        fetchMonthlyAnalytics();
+    }, []);
 
-            const date = new Date(expense.createdAt);
+    const fetchMonthlyAnalytics = async () => {
+        try {
 
-            const month = date.toLocaleString("default", {
-                month: "short",
-            });
+            setLoading(true);
 
-            const year = date.getFullYear();
+            const response =
+                await analyticsService.getMonthlyAnalytics();
 
-            const key = `${month} ${year}`;
+            /*
+            Backend should return:
 
-            if (!totals[key]) {
-                totals[key] = 0;
-            }
+            [
+                {
+                    month: "Jan 2026",
+                    total: 1200
+                },
+                {
+                    month: "Feb 2026",
+                    total: 3500
+                }
+            ]
+            */
 
-            totals[key] += expense.amount;
+            setChartData(response.data || []);
 
-            return totals;
+        } catch (error) {
 
-        }, {});
+            console.error(error);
 
-    }, [expenses]);
+        } finally {
 
-    /* ---------- Chart Data ---------- */
+            setLoading(false);
 
-    const chartData = useMemo(() => {
+        }
+    };
 
-        return Object.entries(monthlyTotals).map(
-            ([month, total]) => ({
-                month,
-                total,
-            })
+    if (loading) {
+        return (
+            <div className="bg-white rounded-xl shadow-lg p-6 h-[400px] flex items-center justify-center">
+                Loading...
+            </div>
         );
+    }
 
-    }, [monthlyTotals]);
+    if (!chartData.length) {
+        return (
+            <div className="bg-white rounded-xl shadow-lg p-6 h-[400px] flex items-center justify-center">
+                No Monthly Data Available
+            </div>
+        );
+    }
 
     return (
 
         <div className="bg-white rounded-xl shadow-lg p-6">
 
             <h2 className="text-xl font-bold mb-5">
-
                 Monthly Expenses
-
             </h2>
 
             <ResponsiveContainer
@@ -67,9 +85,7 @@ const MonthlyChart = ({ expenses }) => {
                 height={350}
             >
 
-                <BarChart
-                    data={chartData}
-                >
+                <BarChart data={chartData}>
 
                     <CartesianGrid strokeDasharray="3 3" />
 
@@ -77,7 +93,12 @@ const MonthlyChart = ({ expenses }) => {
 
                     <YAxis />
 
-                    <Tooltip />
+                    <Tooltip
+                        formatter={(value) => [
+                            `₹${Number(value).toFixed(2)}`,
+                            "Total",
+                        ]}
+                    />
 
                     <Bar
                         dataKey="total"

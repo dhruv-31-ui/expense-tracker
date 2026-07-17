@@ -1,120 +1,107 @@
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
+import dashboardService from "../../services/dashboardService";
 
-const StatsCards = ({ expenses }) => {
+const StatsCards = () => {
 
-    /* ---------- Total Expenses ---------- */
+    const [stats, setStats] = useState({
+        totalAmount: 0,
+        totalExpenses: 0,
+        averageExpense: 0,
+        highestExpense: 0,
+    });
 
-    const totalExpenses = useMemo(() => {
+    const [loading, setLoading] = useState(true);
 
-        return expenses.reduce(
-            (total, expense) => total + expense.amount,
-            0
+    useEffect(() => {
+        fetchDashboardStats();
+    }, []);
+
+    const fetchDashboardStats = async () => {
+        try {
+
+            setLoading(true);
+
+            const response =
+                await dashboardService.getDashboard();
+
+            const data = response.data;
+
+            setStats({
+                totalAmount: data.totalAmount || 0,
+                totalExpenses: data.totalExpenses || 0,
+                averageExpense: data.averageExpense || 0,
+                highestExpense: data.highestExpense || 0,
+            });
+
+        } catch (error) {
+
+            console.error(error);
+
+        } finally {
+
+            setLoading(false);
+
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="bg-white shadow rounded-xl p-6 text-center">
+                    Loading...
+                </div>
+            </div>
         );
-
-    }, [expenses]);
-
-    /* ---------- Total Transactions ---------- */
-
-    const totalTransactions = useMemo(() => {
-
-        return expenses.length;
-
-    }, [expenses]);
-
-    /* ---------- Average Expense ---------- */
-
-    const averageExpense = useMemo(() => {
-
-        if (expenses.length === 0) return 0;
-
-        return (totalExpenses / expenses.length).toFixed(2);
-
-    }, [expenses, totalExpenses]);
-
-    /* ---------- Highest Expense ---------- */
-
-    const highestExpense = useMemo(() => {
-
-        if (expenses.length === 0) return 0;
-
-        return Math.max(
-            ...expenses.map(expense => expense.amount)
-        );
-
-    }, [expenses]);
+    }
 
     return (
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
 
-            {/* Total Expense */}
-
             <div className="bg-white shadow rounded-xl p-6">
 
                 <h3 className="text-gray-500">
-
                     Total Expenses
-
                 </h3>
 
                 <h2 className="text-3xl font-bold text-blue-600">
-
-                    ₹{totalExpenses}
-
+                    ₹{stats.totalAmount.toFixed(2)}
                 </h2>
 
             </div>
 
-            {/* Transactions */}
-
             <div className="bg-white shadow rounded-xl p-6">
 
                 <h3 className="text-gray-500">
-
                     Transactions
-
                 </h3>
 
                 <h2 className="text-3xl font-bold text-green-600">
-
-                    {totalTransactions}
-
+                    {stats.totalExpenses}
                 </h2>
 
             </div>
 
-            {/* Average */}
-
             <div className="bg-white shadow rounded-xl p-6">
 
                 <h3 className="text-gray-500">
-
                     Average Expense
-
                 </h3>
 
                 <h2 className="text-3xl font-bold text-purple-600">
-
-                    ₹{averageExpense}
-
+                    ₹{Number(stats.averageExpense).toFixed(2)}
                 </h2>
 
             </div>
 
-            {/* Highest */}
-
             <div className="bg-white shadow rounded-xl p-6">
 
                 <h3 className="text-gray-500">
-
                     Highest Expense
-
                 </h3>
 
                 <h2 className="text-3xl font-bold text-red-600">
-
-                    ₹{highestExpense}
-
+                    ₹{Number(stats.highestExpense).toFixed(2)}
                 </h2>
 
             </div>
@@ -122,7 +109,6 @@ const StatsCards = ({ expenses }) => {
         </div>
 
     );
-
 };
 
 export default StatsCards;

@@ -1,58 +1,102 @@
 const jwt = require("jsonwebtoken");
+
 const User = require("../models/User");
+const env = require("../config/env");
 
-const authMiddleware = async (req, res, next) => {
+const asyncHandler = require("../utils/asyncHandler");
+const ApiError = require("../utils/ApiError");
 
-    try {
+/**
+ * ---------------------------------------------------------
+ * Protect Routes
+ * ---------------------------------------------------------
+ */
 
-        // Get Authorization Header
-        const authHeader = req.headers.authorization;
+const protect = asyncHandler(async (req, res, next) => {
+    let token;
 
-        // Check if Authorization Header Exists
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-
-            return res.status(401).json({
-                success: false,
-                message: "Unauthorized"
-            });
-
-        }
-
-        // Extract Token
-        const token = authHeader.split(" ")[1];
-
-        // Verify Token
-        const decoded = jwt.verify(
-            token,
-            process.env.JWT_SECRET
-        );
-
-        // Check if User Exists
-        const user = await User.findById(decoded.userId).select("-password");
-
-        if (!user) {
-
-            return res.status(401).json({
-                success: false,
-                message: "User not found"
-            });
-
-        }
-
-        // Attach User to Request
-        req.user = user;
-
-        next();
-
-    } catch (error) {
-
-        return res.status(401).json({
-            success: false,
-            message: "Unauthorized"
-        });
-
+    if (
+        req.headers.authorization &&
+        req.headers.authorization.startsWith("Bearer ")
+    ) {
+        token = req.headers.authorization.split(" ")[1];
     }
 
+    if (!token) {
+        throw ApiError.unauthorized(
+            "Access denied. No token provided."
+        );
+    }
+
+    let decoded;
+
+    try {
+        decoded = jwt.verify(token, env.JWT_SECRET);
+    } catch (error) {
+        throw ApiError.unauthorized(
+            "Invalid or expired token."
+        );
+    }
+
+    const user = await User.findById(decoded.id).select("-password");
+
+    if (!user) {
+        throw ApiError.notFound("User not found.");
+    }
+
+    req.user = user;
+
+    next();
+});
+
+/**
+ * ---------------------------------------------------------
+ * Admin Middleware
+ * ---------------------------------------------------------
+ */
+
+const admin = (req, res, next) => {
+    if (!req.user) {
+        throw ApiError.unauthorized(
+            "Authentication required."
+        );
+    }
+
+    if (req.user.role !== "admin") {
+        throw ApiError.forbidden(
+            "Access denied. Admin privileges required."
+        );
+    }
+
+    next();
 };
 
-module.exports = authMiddleware;
+/**
+ * ---------------------------------------------------------
+ * Role Based Authorization
+ * ---------------------------------------------------------
+ */
+
+const authorize = (...roles) => {
+    return (req, res, next) => {
+        if (!req.user) {
+            throw ApiError.unauthorized(
+                "Authentication required."
+            );
+        }
+
+        if (!roles.includes(req.user.role)) {
+            throw ApiError.forbidden(
+                "You are not authorized to access this resource."
+            );
+        }
+
+        next();
+    };
+};
+
+module.exports = {
+    protect,
+    admin,
+    authorize,
+};  

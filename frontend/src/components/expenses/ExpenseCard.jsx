@@ -1,4 +1,6 @@
 import React from "react";
+import { toast } from "react-toastify";
+import expenseService from "../../services/expenseService";
 
 const ExpenseCard = ({
     expense,
@@ -7,6 +9,36 @@ const ExpenseCard = ({
     selected,
     onSelect,
 }) => {
+
+    const handleDelete = async () => {
+
+        const confirmDelete = window.confirm(
+            "Are you sure you want to delete this expense?"
+        );
+
+        if (!confirmDelete) return;
+
+        try {
+
+            await expenseService.deleteExpense(expense._id);
+
+            toast.success("Expense deleted successfully");
+
+            if (onDelete) {
+                onDelete();
+            }
+
+        } catch (error) {
+
+            toast.error(
+                error.response?.data?.message ||
+                "Failed to delete expense"
+            );
+
+        }
+
+    };
+
     return (
         <div className="bg-white rounded-xl shadow-md p-5 flex justify-between items-center">
 
@@ -30,17 +62,19 @@ const ExpenseCard = ({
 
                     <p className="text-sm text-gray-400">
                         {new Date(
-                            expense.createdAt
+                            expense.date || expense.createdAt
                         ).toLocaleDateString()}
                     </p>
 
-                    {expense.receipt && (
-                        <img
-                            src={expense.receipt}
-                            alt="Receipt"
-                            className="mt-3 w-24 h-24 object-cover rounded"
-                        />
+                    {expense.description && (
+                        <p className="text-sm text-gray-500 mt-2">
+                            {expense.description}
+                        </p>
                     )}
+
+                    <p className="text-xs text-blue-600 mt-1">
+                        {expense.paymentMethod}
+                    </p>
 
                 </div>
 
@@ -49,9 +83,7 @@ const ExpenseCard = ({
             <div className="flex items-center gap-6">
 
                 <h2 className="text-xl font-bold text-green-600">
-
-                    ₹{expense.amount}
-
+                    ₹{Number(expense.amount).toFixed(2)}
                 </h2>
 
                 <button
@@ -62,7 +94,7 @@ const ExpenseCard = ({
                 </button>
 
                 <button
-                    onClick={() => onDelete(expense._id)}
+                    onClick={handleDelete}
                     className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                 >
                     Delete

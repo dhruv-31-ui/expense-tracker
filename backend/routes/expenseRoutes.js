@@ -2,26 +2,104 @@ const express = require("express");
 
 const router = express.Router();
 
-const authMiddleware = require("../middleware/authMiddleware");
-
 const {
-    addExpense,
-    getExpenses,
+    createExpense,
+    getAllExpenses,
     getExpenseById,
     updateExpense,
-    deleteExpense
+    deleteExpense,
+    searchExpenses,
+    getExpenseSummary,
 } = require("../controllers/expenseController");
 
-// Protected Routes
+const protect = require("../middleware/authMiddleware");
+const validate = require("../middleware/validateMiddleware");
 
-router.post("/", authMiddleware, addExpense);
+const {
+    createExpenseValidator,
+    updateExpenseValidator,
+    expenseIdValidator,
+    searchExpenseValidator,
+    paginationValidator,
+} = require("../validators/expenseValidator");
 
-router.get("/", authMiddleware, getExpenses);
+/**
+ * ---------------------------------------------------------
+ * Summary Routes
+ * ---------------------------------------------------------
+ */
 
-router.get("/:id", authMiddleware, getExpenseById);
+router.get(
+    "/summary",
+    protect,
+    getExpenseSummary
+);
 
-router.put("/:id", authMiddleware, updateExpense);
+/**
+ * ---------------------------------------------------------
+ * Search Route
+ * ---------------------------------------------------------
+ */
 
-router.delete("/:id", authMiddleware, deleteExpense);
+router.get(
+    "/search",
+    protect,
+    searchExpenseValidator,
+    paginationValidator,
+    validate,
+    searchExpenses
+);
+
+/**
+ * ---------------------------------------------------------
+ * Expense CRUD Routes
+ * ---------------------------------------------------------
+ */
+
+// Create Expense
+router.post(
+    "/",
+    protect,
+    createExpenseValidator,
+    validate,
+    createExpense
+);
+
+// Get All Expenses
+router.get(
+    "/",
+    protect,
+    paginationValidator,
+    validate,
+    getAllExpenses
+);
+
+// Get Expense By Id
+router.get(
+    "/:id",
+    protect,
+    expenseIdValidator,
+    validate,
+    getExpenseById
+);
+
+// Update Expense
+router.put(
+    "/:id",
+    protect,
+    expenseIdValidator,
+    updateExpenseValidator,
+    validate,
+    updateExpense
+);
+
+// Delete Expense
+router.delete(
+    "/:id",
+    protect,
+    expenseIdValidator,
+    validate,
+    deleteExpense
+);
 
 module.exports = router;

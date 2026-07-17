@@ -1,301 +1,145 @@
-const Expense = require("../models/Expense");
+const expenseService = require("../services/expenseService");
+const ApiResponse = require("../utils/ApiResponse");
+const asyncHandler = require("../utils/asyncHandler");
 
-// ================= ADD EXPENSE =================
+/**
+ * @desc    Create Expense
+ * @route   POST /api/v1/expenses
+ * @access  Private
+ */
+const createExpense = asyncHandler(async (req, res) => {
+    const expense = await expenseService.createExpense({
+        ...req.body,
+        user: req.user.id,
+    });
 
-const addExpense = async (req, res) => {
+    return ApiResponse.created(
+        res,
+        expense,
+        "Expense created successfully"
+    );
+});
 
-    try {
+/**
+ * @desc    Get All Expenses
+ * @route   GET /api/v1/expenses
+ * @access  Private
+ */
+const getAllExpenses = asyncHandler(async (req, res) => {
+    const expenses = await expenseService.getAllExpenses(
+        req.user.id,
+        req.query
+    );
 
-        const { title, amount, category } = req.body;
+    return ApiResponse.success(
+        res,
+        expenses,
+        "Expenses fetched successfully"
+    );
+});
 
-        const expense = await Expense.create({
+/**
+ * @desc    Get Expense By Id
+ * @route   GET /api/v1/expenses/:id
+ * @access  Private
+ */
+const getExpenseById = asyncHandler(async (req, res) => {
+    const expense = await expenseService.getExpenseById(
+        req.params.id,
+        req.user.id
+    );
 
-            title,
-            amount,
-            category,
-            user: req.user._id
+    return ApiResponse.success(
+        res,
+        expense,
+        "Expense fetched successfully"
+    );
+});
 
-        });
+/**
+ * @desc    Update Expense
+ * @route   PUT /api/v1/expenses/:id
+ * @access  Private
+ */
+const updateExpense = asyncHandler(async (req, res) => {
+    const expense = await expenseService.updateExpense(
+        req.params.id,
+        req.user.id,
+        req.body
+    );
 
-        return res.status(201).json({
+    return ApiResponse.success(
+        res,
+        expense,
+        "Expense updated successfully"
+    );
+});
 
-            success: true,
-            message: "Expense added successfully",
-            data: expense
+/**
+ * @desc    Delete Expense
+ * @route   DELETE /api/v1/expenses/:id
+ * @access  Private
+ */
+const deleteExpense = asyncHandler(async (req, res) => {
+    await expenseService.deleteExpense(
+        req.params.id,
+        req.user.id
+    );
 
-        });
+    return ApiResponse.success(
+        res,
+        null,
+        "Expense deleted successfully"
+    );
+});
 
-    } catch (error) {
+/**
+ * @desc    Search Expenses
+ * @route   GET /api/v1/expenses/search
+ * @access  Private
+ */
+const searchExpenses = asyncHandler(async (req, res) => {
+    const { keyword, page, limit } = req.query;
 
-        if (error.name === "ValidationError") {
-
-            const errors = Object.values(error.errors).map(
-                (err) => err.message
-            );
-
-            return res.status(400).json({
-
-                success: false,
-                errors
-
-            });
-
+    const expenses = await expenseService.searchExpenses(
+        req.user.id,
+        keyword,
+        {
+            page: Number(page) || 1,
+            limit: Number(limit) || 10,
         }
-
-        return res.status(500).json({
-
-            success: false,
-            message: "Something went wrong"
-
-        });
-
-    }
-
-};
-
-// ================= GET ALL EXPENSES =================
-
-const getExpenses = async (req, res) => {
-
-    try {
-
-        const expenses = await Expense.find({
-
-            user: req.user._id
-
-        }).sort({
-
-            createdAt: -1
-
-        });
-
-        return res.status(200).json({
-
-            success: true,
-            count: expenses.length,
-            data: expenses
-
-        });
-
-    } catch (error) {
-
-        return res.status(500).json({
-
-            success: false,
-            message: "Something went wrong"
-
-        });
-
-    }
-
-};
-
-// ================= GET EXPENSE BY ID =================
-
-const getExpenseById = async (req, res) => {
-
-    try {
-
-        const { id } = req.params;
-
-        const expense = await Expense.findOne({
-
-            _id: id,
-            user: req.user._id
-
-        });
-
-        if (!expense) {
-
-            return res.status(404).json({
-
-                success: false,
-                message: "Expense not found"
-
-            });
-
-        }
-
-        return res.status(200).json({
-
-            success: true,
-            data: expense
-
-        });
-
-    } catch (error) {
-
-        if (error.name === "CastError") {
-
-            return res.status(400).json({
-
-                success: false,
-                message: "Invalid Expense ID"
-
-            });
-
-        }
-
-        return res.status(500).json({
-
-            success: false,
-            message: "Something went wrong"
-
-        });
-
-    }
-
-};
-
-// ================= UPDATE EXPENSE =================
-
-const updateExpense = async (req, res) => {
-
-    try {
-
-        const { id } = req.params;
-
-        const expense = await Expense.findOneAndUpdate(
-
-            {
-
-                _id: id,
-                user: req.user._id
-
-            },
-
-            req.body,
-
-            {
-
-                new: true,
-                runValidators: true
-
-            }
-
-        );
-
-        if (!expense) {
-
-            return res.status(404).json({
-
-                success: false,
-                message: "Expense not found"
-
-            });
-
-        }
-
-        return res.status(200).json({
-
-            success: true,
-            message: "Expense updated successfully",
-            data: expense
-
-        });
-
-    } catch (error) {
-
-        if (error.name === "ValidationError") {
-
-            const errors = Object.values(error.errors).map(
-                (err) => err.message
-            );
-
-            return res.status(400).json({
-
-                success: false,
-                errors
-
-            });
-
-        }
-
-        if (error.name === "CastError") {
-
-            return res.status(400).json({
-
-                success: false,
-                message: "Invalid Expense ID"
-
-            });
-
-        }
-
-        return res.status(500).json({
-
-            success: false,
-            message: "Something went wrong"
-
-        });
-
-    }
-
-};
-
-// ================= DELETE EXPENSE =================
-
-const deleteExpense = async (req, res) => {
-
-    try {
-
-        const { id } = req.params;
-
-        const expense = await Expense.findOneAndDelete({
-
-            _id: id,
-            user: req.user._id
-
-        });
-
-        if (!expense) {
-
-            return res.status(404).json({
-
-                success: false,
-                message: "Expense not found"
-
-            });
-
-        }
-
-        return res.status(200).json({
-
-            success: true,
-            message: "Expense deleted successfully"
-
-        });
-
-    } catch (error) {
-
-        if (error.name === "CastError") {
-
-            return res.status(400).json({
-
-                success: false,
-                message: "Invalid Expense ID"
-
-            });
-
-        }
-
-        return res.status(500).json({
-
-            success: false,
-            message: "Something went wrong"
-
-        });
-
-    }
-
-};
+    );
+
+    return ApiResponse.success(
+        res,
+        expenses,
+        "Expenses fetched successfully"
+    );
+});
+
+/**
+ * @desc    Expense Summary
+ * @route   GET /api/v1/expenses/summary
+ * @access  Private
+ */
+const getExpenseSummary = asyncHandler(async (req, res) => {
+    const summary = await expenseService.getExpenseSummary(
+        req.user.id
+    );
+
+    return ApiResponse.success(
+        res,
+        summary,
+        "Expense summary fetched successfully"
+    );
+});
 
 module.exports = {
-
-    addExpense,
-    getExpenses,
+    createExpense,
+    getAllExpenses,
     getExpenseById,
     updateExpense,
-    deleteExpense
-
+    deleteExpense,
+    searchExpenses,
+    getExpenseSummary,
 };

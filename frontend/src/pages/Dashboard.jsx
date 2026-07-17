@@ -14,41 +14,64 @@ import BudgetCard from "../components/dashboard/BudgetCard";
 import CategoryChart from "../components/charts/CategoryChart";
 import MonthlyChart from "../components/charts/MonthlyChart";
 
-import api from "../services/api";
+import expenseService from "../services/expenseService";
 
 const Dashboard = () => {
 
     const [expenses, setExpenses] = useState([]);
-
     const [loading, setLoading] = useState(false);
 
     const [currentPage, setCurrentPage] = useState(1);
-
     const [totalPages, setTotalPages] = useState(1);
 
     const [searchTerm, setSearchTerm] = useState("");
-
     const [category, setCategory] = useState("All");
-
     const [sortBy, setSortBy] = useState("newest");
 
     const [dateRange, setDateRange] = useState({
         start: "",
-        end: ""
+        end: "",
     });
 
     const fetchExpenses = async () => {
+        try {
+            setLoading(true);
 
+            const response = await expenseService.getExpenses({
+                page: currentPage,
+                search: searchTerm,
+                category:
+                    category === "All"
+                        ? ""
+                        : category,
+                sort: sortBy,
+                startDate: dateRange.start,
+                endDate: dateRange.end,
+            });
+
+            setExpenses(response.data);
+
+            if (response.pagination) {
+                setTotalPages(response.pagination.totalPages);
+            }
+        } catch (error) {
+            console.error("Error fetching expenses:", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
-
         fetchExpenses();
-
-    }, [currentPage]);
+    }, [
+        currentPage,
+        searchTerm,
+        category,
+        sortBy,
+        dateRange,
+    ]);
 
     return (
-
         <div className="min-h-screen bg-gray-100">
 
             <Navbar />
@@ -61,6 +84,7 @@ const Dashboard = () => {
 
                 <ExpenseForm
                     setExpenses={setExpenses}
+                    fetchExpenses={fetchExpenses}
                 />
 
                 <SearchBar
@@ -83,10 +107,8 @@ const Dashboard = () => {
                 <ExpenseList
                     expenses={expenses}
                     setExpenses={setExpenses}
-                    searchTerm={searchTerm}
-                    category={category}
-                    dateRange={dateRange}
-                    sortBy={sortBy}
+                    fetchExpenses={fetchExpenses}
+                    loading={loading}
                 />
 
                 <Pagination
@@ -97,22 +119,16 @@ const Dashboard = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-8">
 
-                    <CategoryChart
-                        expenses={expenses}
-                    />
+                    <CategoryChart expenses={expenses} />
 
-                    <MonthlyChart
-                        expenses={expenses}
-                    />
+                    <MonthlyChart expenses={expenses} />
 
                 </div>
 
             </div>
 
         </div>
-
     );
-
 };
 
 export default Dashboard;

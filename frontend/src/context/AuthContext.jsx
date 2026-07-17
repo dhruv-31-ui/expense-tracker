@@ -1,142 +1,92 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import api from "../services/api";
-import { toast } from "react-toastify";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-
     const [user, setUser] = useState(null);
+    const [token, setToken] = useState(localStorage.getItem("token"));
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        checkAuth();
+        const initializeAuth = async () => {
+            const storedToken = localStorage.getItem("token");
+            const storedUser = localStorage.getItem("user");
+
+            if (storedToken && storedUser) {
+                setToken(storedToken);
+                setUser(JSON.parse(storedUser));
+            }
+
+            setLoading(false);
+        };
+
+        initializeAuth();
     }, []);
 
-    const checkAuth = async () => {
-
-    };
-
-    const login = async (email, password) => {
-
-    };
-
+    // ============================
+    // Register
+    // ============================
     const register = async (userData) => {
+        const response = await api.post("/auth/register", userData);
 
+        return response.data;
     };
 
-    const logout = () => {
+    // ============================
+    // Login
+    // ============================
+    const login = async (credentials) => {
+        const response = await api.post("/auth/login", credentials);
 
+        const { token, user } = response.data.data;
+
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+
+        setToken(token);
+        setUser(user);
+
+        return response.data;
+    };
+
+    // ============================
+    // Logout
+    // ============================
+    const logout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        setUser(null);
+        setToken(null);
+    };
+
+    // ============================
+    // Update User
+    // ============================
+    const updateUser = (updatedUser) => {
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        setUser(updatedUser);
+    };
+
+    const value = {
+        user,
+        token,
+        loading,
+        login,
+        register,
+        logout,
+        updateUser,
+        isAuthenticated: !!token,
     };
 
     return (
-        <AuthContext.Provider
-            value={{
-                user,
-                loading,
-                login,
-                register,
-                logout,
-                setUser,
-            }}
-        >
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );
 };
 
-export const useAuth = () => {
-    return useContext(AuthContext);
-};
-const checkAuth = async () => {
+export const useAuth = () => useContext(AuthContext);
 
-    try {
-
-        const token = localStorage.getItem("token");
-
-        if (!token) {
-            return;
-        }
-
-        const response = await api.get("/auth/profile");
-
-        setUser(response.data.data);
-
-    } catch (error) {
-
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-
-    } finally {
-
-        setLoading(false);
-
-    }
-
-};
-const login = async (email, password) => {
-
-    try {
-
-        const response = await api.post("/auth/login", {
-            email,
-            password,
-        });
-
-        localStorage.setItem("token", response.data.token);
-
-        localStorage.setItem(
-            "user",
-            JSON.stringify(response.data.user)
-        );
-
-        setUser(response.data.user);
-
-        toast.success("Login Successful");
-
-    } catch (error) {
-
-        toast.error(
-            error.response?.data?.message ||
-            "Login Failed"
-        );
-
-        throw error;
-
-    }
-
-};
-const register = async (userData) => {
-
-    try {
-
-        const response = await api.post(
-            "/auth/register",
-            userData
-        );
-
-        toast.success(response.data.message);
-
-    } catch (error) {
-
-        toast.error(
-            error.response?.data?.message ||
-            "Registration Failed"
-        );
-
-        throw error;
-
-    }
-
-};
-const logout = () => {
-
-    localStorage.removeItem("token");
-
-    localStorage.removeItem("user");
-
-    setUser(null);
-
-    toast.success("Logged Out");
-
-};
+export default AuthContext;
