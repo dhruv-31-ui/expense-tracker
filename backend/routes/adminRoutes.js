@@ -5,18 +5,16 @@ const router = express.Router();
 const {
     getAllUsers,
     deleteUser,
-} = require("../controllers/adminController");
+} = require("../controllers/adminControllers");
 
-const authMiddleware = require("../middleware/authMiddleware");
+const {
+    protect,
+    admin,
+} = require("../middleware/authMiddleware");
 
-// If you have admin middleware, import it here
-// const adminMiddleware = require("../middleware/adminMiddleware");
-
-router.use(authMiddleware);
-// router.use(adminMiddleware);
+router.use(protect, admin);
 
 router.get("/users", getAllUsers);
-
 router.delete("/users/:id", deleteUser);
 
 module.exports = router;

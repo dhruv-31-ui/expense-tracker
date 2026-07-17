@@ -12,7 +12,6 @@ const {
 } = require("../controllers/authController");
 
 const { protect } = require("../middleware/authMiddleware");
-
 const validate = require("../middleware/validateMiddleware");
 
 const {
@@ -20,15 +19,8 @@ const {
     loginValidator,
     updateProfileValidator,
     changePasswordValidator,
-} = require("../validators/authValidator");
+} = require("../validators/authValidators");
 
-/*
-|--------------------------------------------------------------------------
-| Public Routes
-|--------------------------------------------------------------------------
-*/
-
-// Register User
 router.post(
     "/register",
     registerValidator,
@@ -36,7 +28,6 @@ router.post(
     register
 );
 
-// Login User
 router.post(
     "/login",
     loginValidator,
@@ -44,20 +35,8 @@ router.post(
     login
 );
 
-/*
-|--------------------------------------------------------------------------
-| Private Routes
-|--------------------------------------------------------------------------
-*/
+router.get("/profile", protect, getProfile);
 
-// Get Logged In User
-router.get(
-    "/profile",
-    protect,
-    getProfile
-);
-
-// Update Profile
 router.put(
     "/profile",
     protect,
@@ -66,7 +45,6 @@ router.put(
     updateProfile
 );
 
-// Change Password
 router.put(
     "/change-password",
     protect,
@@ -75,11 +53,6 @@ router.put(
     changePassword
 );
 
-// Delete Account
-router.delete(
-    "/profile",
-    protect,
-    deleteAccount
-);
+router.delete("/profile", protect, deleteAccount);
 
 module.exports = router;

@@ -12,7 +12,7 @@ const {
     getExpenseSummary,
 } = require("../controllers/expenseController");
 
-const protect = require("../middleware/authMiddleware");
+const { protect } = require("../middleware/authMiddleware");
 const validate = require("../middleware/validateMiddleware");
 
 const {
@@ -23,23 +23,7 @@ const {
     paginationValidator,
 } = require("../validators/expenseValidator");
 
-/**
- * ---------------------------------------------------------
- * Summary Routes
- * ---------------------------------------------------------
- */
-
-router.get(
-    "/summary",
-    protect,
-    getExpenseSummary
-);
-
-/**
- * ---------------------------------------------------------
- * Search Route
- * ---------------------------------------------------------
- */
+router.get("/summary", protect, getExpenseSummary);
 
 router.get(
     "/search",
@@ -50,13 +34,6 @@ router.get(
     searchExpenses
 );
 
-/**
- * ---------------------------------------------------------
- * Expense CRUD Routes
- * ---------------------------------------------------------
- */
-
-// Create Expense
 router.post(
     "/",
     protect,
@@ -65,7 +42,6 @@ router.post(
     createExpense
 );
 
-// Get All Expenses
 router.get(
     "/",
     protect,
@@ -74,7 +50,6 @@ router.get(
     getAllExpenses
 );
 
-// Get Expense By Id
 router.get(
     "/:id",
     protect,
@@ -83,7 +58,6 @@ router.get(
     getExpenseById
 );
 
-// Update Expense
 router.put(
     "/:id",
     protect,
@@ -93,7 +67,6 @@ router.put(
     updateExpense
 );
 
-// Delete Expense
 router.delete(
     "/:id",
     protect,

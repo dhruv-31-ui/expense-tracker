@@ -1,4 +1,9 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import {
+    BrowserRouter,
+    Navigate,
+    Route,
+    Routes,
+} from "react-router-dom";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -13,18 +18,20 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
-
-                {/* Public Routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
 
-                {/* Protected Routes */}
                 <Route element={<ProtectedRoute />}>
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/profile" element={<Profile />} />
+                    <Route
+                        path="/dashboard"
+                        element={<Dashboard />}
+                    />
+                    <Route
+                        path="/profile"
+                        element={<Profile />}
+                    />
                 </Route>
 
-                {/* Admin Routes */}
                 <Route element={<AdminRoute />}>
                     <Route
                         path="/admin"
@@ -32,9 +39,10 @@ function App() {
                     />
                 </Route>
 
-                {/* Default */}
-                <Route path="*" element={<Navigate to="/login" replace />} />
-
+                <Route
+                    path="*"
+                    element={<Navigate to="/login" replace />}
+                />
             </Routes>
         </BrowserRouter>
     );
