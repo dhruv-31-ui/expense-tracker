@@ -7,7 +7,7 @@ const StatsCards = () => {
         totalAmount: 0,
         totalExpenses: 0,
         averageExpense: 0,
-        highestExpense: 0,
+        monthlyExpense: 0,
     });
 
     const [loading, setLoading] = useState(true);
@@ -24,13 +24,13 @@ const StatsCards = () => {
             const response =
                 await dashboardService.getDashboard();
 
-            const data = response.data;
+            const data = response.data?.overview || {};
 
             setStats({
-                totalAmount: data.totalAmount || 0,
-                totalExpenses: data.totalExpenses || 0,
+                totalAmount: data.totalExpense || 0,
+                totalExpenses: data.totalTransactions || 0,
                 averageExpense: data.averageExpense || 0,
-                highestExpense: data.highestExpense || 0,
+                monthlyExpense: data.thisMonthExpense || 0,
             });
 
         } catch (error) {
@@ -46,8 +46,8 @@ const StatsCards = () => {
 
     if (loading) {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className="bg-white shadow rounded-xl p-6 text-center">
+            <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm sm:col-span-2 xl:col-span-4">
                     Loading...
                 </div>
             </div>
@@ -56,52 +56,52 @@ const StatsCards = () => {
 
     return (
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
-            <div className="bg-white shadow rounded-xl p-6">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
 
-                <h3 className="text-gray-500">
+                <h3 className="text-sm font-medium text-slate-500">
                     Total Expenses
                 </h3>
 
-                <h2 className="text-3xl font-bold text-blue-600">
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-900">
                     ₹{stats.totalAmount.toFixed(2)}
                 </h2>
 
             </div>
 
-            <div className="bg-white shadow rounded-xl p-6">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
 
-                <h3 className="text-gray-500">
+                <h3 className="text-sm font-medium text-slate-500">
                     Transactions
                 </h3>
 
-                <h2 className="text-3xl font-bold text-green-600">
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-emerald-600">
                     {stats.totalExpenses}
                 </h2>
 
             </div>
 
-            <div className="bg-white shadow rounded-xl p-6">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
 
-                <h3 className="text-gray-500">
+                <h3 className="text-sm font-medium text-slate-500">
                     Average Expense
                 </h3>
 
-                <h2 className="text-3xl font-bold text-purple-600">
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-violet-600">
                     ₹{Number(stats.averageExpense).toFixed(2)}
                 </h2>
 
             </div>
 
-            <div className="bg-white shadow rounded-xl p-6">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
 
-                <h3 className="text-gray-500">
-                    Highest Expense
+                <h3 className="text-sm font-medium text-slate-500">
+                    This Month
                 </h3>
 
-                <h2 className="text-3xl font-bold text-red-600">
-                    ₹{Number(stats.highestExpense).toFixed(2)}
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-rose-600">
+                    ₹{Number(stats.monthlyExpense).toFixed(2)}
                 </h2>
 
             </div>

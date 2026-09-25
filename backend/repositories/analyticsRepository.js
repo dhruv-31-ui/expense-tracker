@@ -7,7 +7,7 @@ class AnalyticsRepository {
     getBaseMatch(userId) {
         return {
             user: userId,
-            isDeleted: false,
+            isDeleted: { $ne: true },
         };
     }
 

@@ -14,7 +14,7 @@ class ExpenseRepository {
     async findById(expenseId) {
         return await Expense.findOne({
             _id: expenseId,
-            isDeleted: false,
+            isDeleted: { $ne: true },
         }).populate("user", "name email");
     }
 
@@ -31,7 +31,7 @@ class ExpenseRepository {
 
         const query = {
             user: userId,
-            isDeleted: false,
+            isDeleted: { $ne: true },
             ...filters,
         };
 
@@ -71,7 +71,7 @@ class ExpenseRepository {
 
         const query = {
             user: userId,
-            isDeleted: false,
+            isDeleted: { $ne: true },
             $text: {
                 $search: keyword,
             },
@@ -109,7 +109,7 @@ class ExpenseRepository {
         return await Expense.findOneAndUpdate(
             {
                 _id: expenseId,
-                isDeleted: false,
+            isDeleted: { $ne: true },
             },
             updateData,
             {
@@ -142,7 +142,7 @@ class ExpenseRepository {
             {
                 $match: {
                     user: userId,
-                    isDeleted: false,
+                    isDeleted: { $ne: true },
                 },
             },
             {
@@ -166,7 +166,7 @@ class ExpenseRepository {
             {
                 $match: {
                     user: userId,
-                    isDeleted: false,
+                    isDeleted: { $ne: true },
                 },
             },
             {
@@ -196,7 +196,7 @@ class ExpenseRepository {
             {
                 $match: {
                     user: userId,
-                    isDeleted: false,
+                    isDeleted: { $ne: true },
                 },
             },
             {

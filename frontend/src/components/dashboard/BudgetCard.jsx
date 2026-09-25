@@ -14,10 +14,11 @@ const BudgetCard = ({ expenses = [] }) => {
     /* ---------- Total Expenses ---------- */
 
     const totalExpenses = useMemo(() => {
-        return expenses.reduce(
-            (total, expense) => total + Number(expense.amount),
-            0
-        );
+        return expenses.reduce((total, expense) => (
+            expense.category === "Salary"
+                ? total
+                : total + Number(expense.amount || 0)
+        ), 0);
     }, [expenses]);
 
     /* ---------- Remaining Budget ---------- */
@@ -62,13 +63,11 @@ const BudgetCard = ({ expenses = [] }) => {
     }, [progress]);
 
     return (
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
 
             <div className="flex justify-between items-center mb-5">
 
-                <h2 className="text-2xl font-bold">
-                    Budget Overview
-                </h2>
+                <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">MONTHLY PLAN</p><h2 className="mt-1 text-xl font-bold tracking-tight text-slate-900">Budget overview</h2></div>
 
                 <input
                     type="number"
@@ -77,7 +76,8 @@ const BudgetCard = ({ expenses = [] }) => {
                     onChange={(e) =>
                         setBudget(Number(e.target.value))
                     }
-                    className="border rounded-lg p-2 w-40"
+                    aria-label="Monthly budget"
+                    className="w-40 rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
                     placeholder="Budget"
                 />
 

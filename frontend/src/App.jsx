@@ -1,9 +1,4 @@
-import {
-    BrowserRouter,
-    Navigate,
-    Route,
-    Routes,
-} from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -16,8 +11,7 @@ import AdminRoute from "./routes/AdminRoute";
 
 function App() {
     return (
-        <BrowserRouter>
-            <Routes>
+        <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
 
@@ -43,8 +37,7 @@ function App() {
                     path="*"
                     element={<Navigate to="/login" replace />}
                 />
-            </Routes>
-        </BrowserRouter>
+        </Routes>
     );
 }
 

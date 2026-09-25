@@ -26,13 +26,13 @@ class DashboardRepository {
 
         const expenseMatch = {
             user: userId,
-            isDeleted: false,
+            isDeleted: { $ne: true },
             category: { $ne: "Salary" },
         };
 
         const incomeMatch = {
             user: userId,
-            isDeleted: false,
+            isDeleted: { $ne: true },
             category: "Salary",
         };
 
@@ -130,7 +130,7 @@ class DashboardRepository {
              */
             Expense.find({
                 user: userId,
-                isDeleted: false,
+                isDeleted: { $ne: true },
             })
                 .select(
                     "title amount category date paymentMethod description"
@@ -173,7 +173,7 @@ class DashboardRepository {
                 {
                     $match: {
                         user: userId,
-                        isDeleted: false,
+                        isDeleted: { $ne: true },
                     },
                 },
                 {

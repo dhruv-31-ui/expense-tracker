@@ -1,12 +1,12 @@
 import ExpenseCard from "./ExpenseCard";
 
 const ExpenseList = ({
-    expenses,
+    expenses = [],
     loading,
     onEdit,
     onDelete,
-    selectedExpenseIds,
-    setSelectedExpenseIds,
+    selectedExpenseIds = [],
+    setSelectedExpenseIds = () => {},
 }) => {
 
     const handleCheckboxChange = (expenseId) => {

@@ -23,14 +23,15 @@ const COLORS = [
     "#6366F1",
 ];
 
-const CategoryChart = () => {
+const CategoryChart = ({ refreshKey = 0 }) => {
 
     const [chartData, setChartData] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         fetchCategoryAnalytics();
-    }, []);
+    }, [refreshKey]);
 
     const fetchCategoryAnalytics = async () => {
         try {
@@ -40,22 +41,20 @@ const CategoryChart = () => {
             const response =
                 await analyticsService.getCategoryAnalytics();
 
-            /*
-             Backend should return:
+            const rows = Array.isArray(response?.data)
+                ? response.data
+                : Array.isArray(response)
+                ? response
+                : [];
 
-             [
-                {
-                    category: "Food",
-                    total: 2500
-                }
-             ]
-            */
-
-            setChartData(response.data || []);
+            setError("");
+            setChartData(rows.map((item) => ({
+                category: item.category || item._id || "Others",
+                total: Number(item.total ?? item.totalAmount ?? 0),
+            })));
 
         } catch (error) {
-
-            console.error(error);
+            setError(error.response?.data?.message || "Could not load category analytics.");
 
         } finally {
 
@@ -66,26 +65,27 @@ const CategoryChart = () => {
 
     if (loading) {
         return (
-            <div className="bg-white rounded-xl shadow-lg p-6 h-[400px] flex items-center justify-center">
-                Loading...
+            <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm h-[400px] flex items-center justify-center text-slate-500">
+                Loading category data…
             </div>
         );
     }
 
+    if (error) {
+        return <div className="min-w-0 rounded-3xl border border-rose-100 bg-white p-6 shadow-sm h-[400px] flex flex-col items-center justify-center text-center"><p className="font-semibold text-slate-800">Category chart unavailable</p><p className="mt-2 text-sm text-slate-500">{error}</p></div>;
+    }
+
     if (!chartData.length) {
         return (
-            <div className="bg-white rounded-xl shadow-lg p-6 h-[400px] flex items-center justify-center">
-                No Data Available
+            <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm h-[400px] flex flex-col items-center justify-center text-center"><p className="font-semibold text-slate-800">No category data yet</p><p className="mt-2 text-sm text-slate-500">Add an expense to see your spending breakdown.</p>
             </div>
         );
     }
 
     return (
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
 
-            <h2 className="text-xl font-bold mb-5">
-                Expenses by Category
-            </h2>
+            <div className="mb-2"><p className="text-xs font-bold uppercase tracking-[0.18em] text-indigo-600">Breakdown</p><h2 className="mt-1 text-lg font-bold text-slate-900">Spending by category</h2></div>
 
             <ResponsiveContainer
                 width="100%"
@@ -100,7 +100,7 @@ const CategoryChart = () => {
                         cx="50%"
                         cy="50%"
                         outerRadius={120}
-                        label
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     >
                         {chartData.map((entry, index) => (
                             <Cell
@@ -115,7 +115,7 @@ const CategoryChart = () => {
                         ))}
                     </Pie>
 
-                    <Tooltip />
+                    <Tooltip formatter={(value) => [`₹${Number(value).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`, "Total"]} />
 
                     <Legend />
 

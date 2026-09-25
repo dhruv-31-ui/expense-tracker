@@ -29,6 +29,11 @@ const expenseSchema = new mongoose.Schema(
                 "Shopping",
                 "Bills",
                 "Entertainment",
+                "Healthcare",
+                "Education",
+                "Transportation",
+                "Salary",
+                "Investment",
                 "Others",
             ],
             required: true,
@@ -42,6 +47,17 @@ const expenseSchema = new mongoose.Schema(
         receipt: {
             type: String,
             default: "",
+        },
+
+        paymentMethod: {
+            type: String,
+            enum: ["Cash", "Credit Card", "Debit Card", "UPI", "Net Banking", "Wallet", "Others"],
+            default: "UPI",
+        },
+
+        isDeleted: {
+            type: Boolean,
+            default: false,
         },
 
         date: {
